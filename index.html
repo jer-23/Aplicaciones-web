@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Taller y Laboratorio</title>
+    <!-- 1. EL FAVICON (Logo) -->
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -44,11 +47,13 @@
             <!-- PESTAÑA 1: GESTIÓN DE INVENTARIO -->
             <div id="tab-inventario" class="tab-content active">
                 <div class="card">
-                    <h2>Agregar Nuevo Elemento</h2>
+                    <h2 id="form-title">Agregar Nuevo Elemento</h2>
                     <form id="item-form">
                         <div class="form-group">
                             <label for="item-name">Nombre del elemento:</label>
-                            <input type="text" id="item-name" placeholder="Ej. Martillo..." required>
+                            <!-- Autocompletado con list -->
+                            <input type="text" id="item-name" list="nombres-herramientas" placeholder="Ej. Martillo..." required>
+                            <datalist id="nombres-herramientas"></datalist>
                         </div>
                         <div class="form-group">
                             <label for="item-quantity">Cantidad:</label>
@@ -71,23 +76,31 @@
                         </div>
                         <div class="form-group">
                             <label for="item-responsable">Responsable (Si fue prestado):</label>
-                            <input type="text" id="item-responsable" placeholder="Ej. Carlos G. (Dejar en blanco si está en planta)">
+                            <!-- Sin 'required' por defecto -->
+                            <input type="text" id="item-responsable" placeholder="Dejar en blanco si está en planta">
                         </div>
-                        <button type="submit" class="btn-primary">Guardar Elemento</button>
+                        <button type="submit" id="btn-submit" class="btn-primary">Guardar Elemento</button>
+                        <!-- Botón oculto para cancelar edición -->
+                        <button type="button" id="btn-cancel" class="btn-primary" style="display: none; background-color: var(--border-color); color: var(--text-primary); margin-left: 10px;">Cancelar</button>
                     </form>
                 </div>
 
                 <div class="card">
                     <h2>Inventario Actual</h2>
-                    <div class="filters-container">
-                        <input type="text" id="search-input" placeholder="🔍 Buscar herramienta por nombre...">
-                        <select id="filter-select">
-                            <option value="Todos">Todos los elementos</option>
-                            <option value="En Planta">Solo en Planta</option>
-                            <option value="Prestado">Solo Prestados</option>
-                            <option value="Dañado">Averiados / Dañados</option>
-                        </select>
+                    <div class="filters-container" style="justify-content: space-between; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 15px; flex: 1; min-width: 300px;">
+                            <input type="text" id="search-input" placeholder="🔍 Buscar herramienta por nombre...">
+                            <select id="filter-select">
+                                <option value="Todos">Todos los elementos</option>
+                                <option value="En Planta">Solo en Planta</option>
+                                <option value="Prestado">Solo Prestados</option>
+                                <option value="Dañado">Averiados / Dañados</option>
+                            </select>
+                        </div>
+                        <!-- Botón Exportar Excel -->
+                        <button id="btn-export-csv" class="btn-primary" style="background-color: var(--accent-green); color: #000; margin-top: 10px;">📥 Exportar a Excel</button>
                     </div>
+                    
                     <div class="table-container">
                         <table id="inventory-table">
                             <thead>
@@ -138,6 +151,23 @@
                     <div class="card chart-card">
                         <h2>Estado del Inventario</h2>
                         <canvas id="chart-estado"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabla de Resumen por Herramienta -->
+                <div class="card" style="margin-top: 25px;">
+                    <h2>Cantidades Totales por Herramienta</h2>
+                    <div class="table-container">
+                        <table id="summary-table">
+                            <thead>
+                                <tr>
+                                    <th>Herramienta</th>
+                                    <th>Total en Inventario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summary-body">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
