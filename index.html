@@ -4,60 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Taller y Laboratorio</title>
-    <!-- Aquí conectamos nuestro archivo de estilos CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Gestión de Elementos de Taller</h1>
-    </header>
-
-    <main>
-        <!-- Sección del formulario para añadir elementos -->
-        <section class="form-section">
-            <h2>Agregar Nuevo Elemento</h2>
-            <form id="item-form">
+    
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-container" class="login-wrapper">
+        <div class="card login-card">
+            <h2 style="text-align: center; margin-bottom: 30px; font-size: 28px;">Taller<span style="color: var(--accent-cyan);">BI</span></h2>
+            <form id="login-form">
                 <div class="form-group">
-                    <label for="item-name">Nombre del elemento:</label>
-                    <input type="text" id="item-name" placeholder="Ej. Martillo, Multímetro..." required>
+                    <label for="login-user">Usuario:</label>
+                    <input type="text" id="login-user" placeholder="Ej. jperez" required>
                 </div>
-                
                 <div class="form-group">
-                    <label for="item-quantity">Cantidad:</label>
-                    <input type="number" id="item-quantity" placeholder="Ej. 5" min="1" required>
+                    <label for="login-pass">Contraseña:</label>
+                    <input type="password" id="login-pass" required>
                 </div>
-                
-                <button type="submit">Guardar Elemento</button>
+                <div id="login-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 13px;">Contraseña incorrecta. Intenta con: taller123</div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Ingresar al Sistema</button>
             </form>
-        </section>
+        </div>
+    </div>
 
-        <!-- Sección de la tabla donde se mostrará el inventario -->
-        <section class="list-section">
-            <h2>Inventario Actual</h2>
-            <!-- NUEVO: Creamos una caja (div) con la clase 'table-container'. 
-                 Esta caja envolverá a la tabla para controlarla en celulares. -->
-            <div class="table-container">
-                <table id="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Cantidad</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-body">
-                        <!-- Fila de ejemplo temporal indicando que está vacío -->
-                        <tr>
-                            <td colspan="3" class="empty-message">No hay elementos en el inventario.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            <!-- NUEVO: Aquí cerramos la caja que envuelve la tabla -->
+    <!-- CONTENEDOR PRINCIPAL DE LA APP -->
+    <div id="app-container" style="display: none;">
+        <nav class="navbar">
+            <div class="nav-brand">Taller<span>BI</span></div>
+            <div class="nav-links">
+                <button class="nav-btn active" data-target="tab-inventario">Gestión de Inventario</button>
+                <button class="nav-btn" data-target="tab-dashboard">Dashboard Analítico</button>
             </div>
-        </section>
-    </main>
+        </nav>
 
-    <!-- Aquí conectamos nuestro archivo de lógica JavaScript -->
+        <main>
+            <!-- PESTAÑA 1: GESTIÓN DE INVENTARIO -->
+            <div id="tab-inventario" class="tab-content active">
+                <div class="card">
+                    <h2>Agregar Nuevo Elemento</h2>
+                    <form id="item-form">
+                        <div class="form-group">
+                            <label for="item-name">Nombre del elemento:</label>
+                            <input type="text" id="item-name" placeholder="Ej. Martillo..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-quantity">Cantidad:</label>
+                            <input type="number" id="item-quantity" placeholder="Ej. 5" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-estado">Estado físico:</label>
+                            <select id="item-estado" required>
+                                <option value="Óptimo">Óptimo</option>
+                                <option value="En Reparación">En Reparación</option>
+                                <option value="Dañado">Dañado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-ubicacion">Ubicación actual:</label>
+                            <select id="item-ubicacion" required>
+                                <option value="En Planta">En Planta (Taller)</option>
+                                <option value="Prestado">Prestado a personal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-responsable">Responsable (Si fue prestado):</label>
+                            <input type="text" id="item-responsable" placeholder="Ej. Carlos G. (Dejar en blanco si está en planta)">
+                        </div>
+                        <button type="submit" class="btn-primary">Guardar Elemento</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Inventario Actual</h2>
+                    <div class="filters-container">
+                        <input type="text" id="search-input" placeholder="🔍 Buscar herramienta por nombre...">
+                        <select id="filter-select">
+                            <option value="Todos">Todos los elementos</option>
+                            <option value="En Planta">Solo en Planta</option>
+                            <option value="Prestado">Solo Prestados</option>
+                            <option value="Dañado">Averiados / Dañados</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table id="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cant.</th>
+                                    <th>Estado</th>
+                                    <th>Ubicación</th>
+                                    <th>Responsable</th>
+                                    <th>Auditoría</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-body">
+                                <tr>
+                                    <td colspan="7" class="empty-message">Cargando datos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA 2: DASHBOARD ANALÍTICO -->
+            <div id="tab-dashboard" class="tab-content">
+                <!-- Tarjetas KPI -->
+                <div class="kpi-container">
+                    <div class="kpi-card">
+                        <h3>Total Herramientas</h3>
+                        <div id="kpi-total" class="kpi-value">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>En Préstamo</h3>
+                        <div id="kpi-prestados" class="kpi-value">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Requieren Atención</h3>
+                        <div id="kpi-atencion" class="kpi-value text-danger">0</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-grid">
+                    <div class="card chart-card">
+                        <h2>Proporción por Ubicación</h2>
+                        <canvas id="chart-ubicacion"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h2>Estado del Inventario</h2>
+                        <canvas id="chart-estado"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Librería Chart.js para gráficas BI -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
