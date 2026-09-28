@@ -1,0 +1,114 @@
+/* Estilos básicos para la estructura inicial */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6; /* Un color de fondo gris claro */
+    color: #333;
+}
+
+header {
+    background-color: #0056b3; /* Azul para el encabezado */
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+section {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Pequeña sombra para dar profundidad */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #28a745; /* Verde para el botón de guardar */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #218838; /* Verde más oscuro cuando pasas el ratón */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.empty-message {
+    text-align: center;
+    color: #777;
+    font-style: italic;
+}
+
+/* =========================================
+   NUEVO: ESTILOS RESPONSIVE (Para celulares)
+   ========================================= */
+
+/* 1. Hacemos que la caja que envuelve la tabla tenga una barra de 
+      desplazamiento horizontal (hacia los lados) SOLO si la tabla 
+      es más ancha que la pantalla. Así evitamos que la página entera se rompa. */
+.table-container {
+    overflow-x: auto; 
+}
+
+/* 2. Regla condicional (@media): Todo el código que pongamos entre 
+      estas llaves {} solo funcionará en pantallas menores a 600px de ancho */
+@media (max-width: 600px) {
+    
+    /* Reducimos el espacio interior (padding) de las cajas blancas (section)
+       para aprovechar al máximo el poco espacio que hay en un celular */
+    section {
+        padding: 10px;
+    }
+
+    /* Reducimos un poco el tamaño del título principal para que quepa bien */
+    h1 {
+        font-size: 22px;
+    }
+    
+    /* Reducimos también el tamaño de los subtítulos (Agregar Nuevo Elemento, etc.) */
+    h2 {
+        font-size: 18px;
+    }
+}

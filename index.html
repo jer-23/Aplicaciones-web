@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Taller y Laboratorio</title>
+    <!-- Aquí conectamos nuestro archivo de estilos CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Gestión de Elementos de Taller</h1>
+    </header>
+
+    <main>
+        <!-- Sección del formulario para añadir elementos -->
+        <section class="form-section">
+            <h2>Agregar Nuevo Elemento</h2>
+            <form id="item-form">
+                <div class="form-group">
+                    <label for="item-name">Nombre del elemento:</label>
+                    <input type="text" id="item-name" placeholder="Ej. Martillo, Multímetro..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="item-quantity">Cantidad:</label>
+                    <input type="number" id="item-quantity" placeholder="Ej. 5" min="1" required>
+                </div>
+                
+                <button type="submit">Guardar Elemento</button>
+            </form>
+        </section>
+
+        <!-- Sección de la tabla donde se mostrará el inventario -->
+        <section class="list-section">
+            <h2>Inventario Actual</h2>
+            <!-- NUEVO: Creamos una caja (div) con la clase 'table-container'. 
+                 Esta caja envolverá a la tabla para controlarla en celulares. -->
+            <div class="table-container">
+                <table id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cantidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-body">
+                        <!-- Fila de ejemplo temporal indicando que está vacío -->
+                        <tr>
+                            <td colspan="3" class="empty-message">No hay elementos en el inventario.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            <!-- NUEVO: Aquí cerramos la caja que envuelve la tabla -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Aquí conectamos nuestro archivo de lógica JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
