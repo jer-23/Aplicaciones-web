@@ -218,11 +218,29 @@ input:focus, select:focus {
     cursor: pointer;
     font-size: 13px;
     transition: all 0.2s;
+    margin-top: 4px;
 }
 
 .delete-btn:hover {
     background-color: var(--accent-danger);
     color: white;
+}
+
+.edit-btn {
+    background-color: transparent;
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+    margin-right: 5px;
+}
+
+.edit-btn:hover {
+    background-color: var(--accent-cyan);
+    color: #000;
 }
 
 /* =========================================

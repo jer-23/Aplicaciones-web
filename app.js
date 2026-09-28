@@ -11,16 +11,21 @@ const loginError = document.getElementById('login-error');
 const loginContainer = document.getElementById('login-container');
 const appContainer = document.getElementById('app-container');
 
+const formTitle = document.getElementById('form-title');
 const form = document.getElementById('item-form');
 const inputName = document.getElementById('item-name');
+const datalistNombres = document.getElementById('nombres-herramientas');
 const inputQuantity = document.getElementById('item-quantity');
 const inputEstado = document.getElementById('item-estado');
 const inputUbicacion = document.getElementById('item-ubicacion');
 const inputResponsable = document.getElementById('item-responsable');
 const inventoryBody = document.getElementById('inventory-body');
+const btnSubmit = document.getElementById('btn-submit');
+const btnCancel = document.getElementById('btn-cancel');
 
 const searchInput = document.getElementById('search-input');
 const filterSelect = document.getElementById('filter-select');
+const btnExportCSV = document.getElementById('btn-export-csv');
 
 // Variables para Gráficos
 let chartUbicacion = null;
@@ -29,6 +34,18 @@ let chartEstado = null;
 // 3. VARIABLES GLOBALES EN MEMORIA
 let inventario = [];
 let usuarioActual = ""; 
+let indiceEdicion = -1; // -1 significa que estamos creando uno nuevo. >= 0 significa que estamos editando.
+
+// Lógica de "Responsable" obligatorio si está "Prestado"
+inputUbicacion.addEventListener('change', function() {
+    if (this.value === 'Prestado') {
+        inputResponsable.required = true;
+        inputResponsable.placeholder = "Obligatorio: Nombre de quien recibe";
+    } else {
+        inputResponsable.required = false;
+        inputResponsable.placeholder = "Dejar en blanco si está en planta";
+    }
+});
 
 // 4. LÓGICA DE LOGIN (FASE 3)
 loginForm.addEventListener('submit', function(e) {
@@ -52,6 +69,7 @@ async function cargarInventario() {
         });
         const datos = await respuesta.json();
         inventario = datos.record; 
+        actualizarDatalist();
         dibujarTabla();
     } catch (error) {
         console.error("Error al cargar:", error);
@@ -73,6 +91,18 @@ async function guardarEnLaNube() {
     } catch (error) {
         console.error("Error al guardar:", error);
     }
+}
+
+// Actualizar lista de autocompletado
+function actualizarDatalist() {
+    // Obtenemos los nombres únicos del inventario
+    const nombresUnicos = [...new Set(inventario.map(item => item.nombre))];
+    datalistNombres.innerHTML = '';
+    nombresUnicos.forEach(nombre => {
+        const option = document.createElement('option');
+        option.value = nombre;
+        datalistNombres.appendChild(option);
+    });
 }
 
 // 6. EVENTOS DE FILTRO (FASE 4)
@@ -118,28 +148,57 @@ function dibujarTabla() {
                     ${item.modificadoPor ? `Por: <b>${item.modificadoPor}</b><br>${item.fechaModificacion}` : 'Sistema Antiguo'}
                 </td>
                 <td>
+                    <button class="edit-btn" data-index="${indiceOriginal}">Editar</button>
                     <button class="delete-btn" data-index="${indiceOriginal}">Eliminar</button>
                 </td>
             `;
             inventoryBody.appendChild(nuevaFila);
         });
 
-        const botonesEliminar = document.querySelectorAll('.delete-btn');
-        botonesEliminar.forEach(function(boton) {
+        // Eventos Editar
+        document.querySelectorAll('.edit-btn').forEach(function(boton) {
             boton.addEventListener('click', function() {
-                const numeroElemento = boton.getAttribute('data-index');
-                inventario.splice(numeroElemento, 1);
-                dibujarTabla();
-                guardarEnLaNube();
+                indiceEdicion = boton.getAttribute('data-index');
+                const itemEditar = inventario[indiceEdicion];
+                
+                // Llenar formulario con los datos
+                inputName.value = itemEditar.nombre;
+                inputQuantity.value = itemEditar.cantidad;
+                inputEstado.value = itemEditar.estado || 'Óptimo';
+                inputUbicacion.value = itemEditar.ubicacion || 'En Planta';
+                inputResponsable.value = itemEditar.responsable || '';
+                
+                // Disparar evento change manual para la lógica de "requerido"
+                inputUbicacion.dispatchEvent(new Event('change'));
+
+                // Cambiar apariencia del formulario
+                formTitle.innerText = `Editando: ${itemEditar.nombre}`;
+                btnSubmit.innerText = "Actualizar Elemento";
+                btnCancel.style.display = "inline-block";
+                
+                // Hacer scroll suave hacia arriba
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Eventos Eliminar
+        document.querySelectorAll('.delete-btn').forEach(function(boton) {
+            boton.addEventListener('click', function() {
+                if (confirm("¿Estás seguro de eliminar este elemento?")) {
+                    const numeroElemento = boton.getAttribute('data-index');
+                    inventario.splice(numeroElemento, 1);
+                    actualizarDatalist();
+                    dibujarTabla();
+                    guardarEnLaNube();
+                }
             });
         });
     }
 
-    // SIEMPRE AL FINALIZAR DE DIBUJAR LA TABLA, ACTUALIZAMOS EL DASHBOARD (FASE 5)
     actualizarDashboard();
 }
 
-// 8. FUNCIÓN DEL DASHBOARD ANALÍTICO (FASE 5)
+// 8. FUNCIÓN DEL DASHBOARD ANALÍTICO (Gráficos Estéticos)
 function actualizarDashboard() {
     let totalHerramientas = 0;
     let totalPrestados = 0;
@@ -152,7 +211,6 @@ function actualizarDashboard() {
     let countReparacion = 0;
     let countDanado = 0;
 
-    // Calculamos los totales recorriendo la lista maestra
     inventario.forEach(item => {
         let cant = parseInt(item.cantidad) || 0;
         totalHerramientas += cant;
@@ -175,17 +233,16 @@ function actualizarDashboard() {
         }
     });
 
-    // 8.1 Actualizar Tarjetas KPI
     document.getElementById('kpi-total').innerText = totalHerramientas;
     document.getElementById('kpi-prestados').innerText = totalPrestados;
     document.getElementById('kpi-atencion').innerText = totalAtencion;
 
-    // Configuración global de colores para Chart.js
     Chart.defaults.color = '#A0A0A0';
+    Chart.defaults.font.family = 'Inter';
 
-    // 8.2 Gráfico de Dona (Ubicación)
+    // Gráfico de Dona (Avanzado)
     const ctxUbicacion = document.getElementById('chart-ubicacion').getContext('2d');
-    if(chartUbicacion) chartUbicacion.destroy(); // Borrar el viejo antes de redibujar
+    if(chartUbicacion) chartUbicacion.destroy(); 
 
     chartUbicacion = new Chart(ctxUbicacion, {
         type: 'doughnut',
@@ -195,18 +252,20 @@ function actualizarDashboard() {
                 data: [countPlanta, countPrestado],
                 backgroundColor: ['#00E5FF', '#FF5252'],
                 borderWidth: 0,
-                hoverOffset: 4
+                hoverOffset: 10 // Efecto de explosión al pasar el mouse
             }]
         },
         options: {
             responsive: true,
+            cutout: '75%', // Anillo más delgado y elegante
             plugins: {
-                legend: { position: 'bottom' }
+                legend: { position: 'bottom', labels: { padding: 20, font: { size: 14 } } },
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, cornerRadius: 8, titleFont: { size: 14 } }
             }
         }
     });
 
-    // 8.3 Gráfico de Barras (Estado Físico)
+    // Gráfico de Barras (Avanzado)
     const ctxEstado = document.getElementById('chart-estado').getContext('2d');
     if(chartEstado) chartEstado.destroy();
 
@@ -215,30 +274,67 @@ function actualizarDashboard() {
         data: {
             labels: ['Óptimo', 'En Reparación', 'Dañado'],
             datasets: [{
-                label: 'Cantidad de Herramientas',
+                label: 'Cantidad',
                 data: [countOptimo, countReparacion, countDanado],
                 backgroundColor: ['#00E676', '#FFD54F', '#FF5252'],
                 borderWidth: 0,
-                borderRadius: 4
+                borderRadius: 6 // Bordes redondeados modernos
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false } // Ocultamos leyenda por ser redundante
+                legend: { display: false },
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, cornerRadius: 8 }
             },
             scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                y: { beginAtZero: true, grid: { color: '#333' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
             }
         }
     });
+
+    // 8.4 Tabla de Resumen (Totales por Herramienta)
+    const summaryBody = document.getElementById('summary-body');
+    if(summaryBody) {
+        summaryBody.innerHTML = '';
+        
+        // Agrupar cantidades por nombre
+        const resumen = {};
+        inventario.forEach(item => {
+            const nombre = item.nombre.trim();
+            const cant = parseInt(item.cantidad) || 0;
+            if(resumen[nombre]) {
+                resumen[nombre] += cant;
+            } else {
+                resumen[nombre] = cant;
+            }
+        });
+
+        // Crear filas de la tabla
+        for (const [nombre, total] of Object.entries(resumen)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${nombre}</td><td><strong style="color: var(--accent-cyan); font-size: 16px;">${total}</strong></td>`;
+            summaryBody.appendChild(tr);
+        }
+    }
 }
 
-// 9. CUANDO EL USUARIO HACE CLIC EN "GUARDAR ELEMENTO"
+// Botón para cancelar edición
+btnCancel.addEventListener('click', function() {
+    indiceEdicion = -1;
+    form.reset();
+    inputUbicacion.dispatchEvent(new Event('change')); // reset required state
+    formTitle.innerText = "Agregar Nuevo Elemento";
+    btnSubmit.innerText = "Guardar Elemento";
+    btnCancel.style.display = "none";
+});
+
+// 9. CUANDO EL USUARIO HACE CLIC EN "GUARDAR" O "ACTUALIZAR"
 form.addEventListener('submit', function(evento) {
     evento.preventDefault();
 
-    inventario.push({ 
+    const objetoGuardado = {
         nombre: inputName.value, 
         cantidad: inputQuantity.value,
         estado: inputEstado.value,
@@ -246,17 +342,67 @@ form.addEventListener('submit', function(evento) {
         responsable: inputResponsable.value,
         modificadoPor: usuarioActual,
         fechaModificacion: new Date().toLocaleDateString()
-    });
+    };
+
+    if (indiceEdicion >= 0) {
+        // Estamos editando
+        inventario[indiceEdicion] = objetoGuardado;
+        indiceEdicion = -1; // Salir de modo edición
+        formTitle.innerText = "Agregar Nuevo Elemento";
+        btnSubmit.innerText = "Guardar Elemento";
+        btnCancel.style.display = "none";
+    } else {
+        // Estamos creando nuevo
+        inventario.push(objetoGuardado);
+    }
     
+    actualizarDatalist();
     dibujarTabla();
     guardarEnLaNube();
 
     form.reset();
     inputEstado.value = 'Óptimo';
     inputUbicacion.value = 'En Planta';
+    inputUbicacion.dispatchEvent(new Event('change'));
 });
 
-// 10. LÓGICA DE LAS PESTAÑAS (NAVEGACIÓN SPA)
+// 10. EXPORTAR A CSV (EXCEL LATINOAMÉRICA)
+btnExportCSV.addEventListener('click', function() {
+    if (inventario.length === 0) {
+        alert("No hay datos para exportar.");
+        return;
+    }
+    
+    // Encabezados del CSV con \uFEFF para que Excel reconozca tildes (BOM UTF-8)
+    // Usamos PUNTO Y COMA (;) porque Excel en español no entiende la coma (,)
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "Nombre;Cantidad;Estado;Ubicacion;Responsable;ModificadoPor;FechaModificacion\n";
+    
+    // Filas
+    inventario.forEach(function(rowArray) {
+        let row = [
+            `"${rowArray.nombre}"`, 
+            rowArray.cantidad, 
+            `"${rowArray.estado || 'Óptimo'}"`, 
+            `"${rowArray.ubicacion || 'En Planta'}"`, 
+            `"${rowArray.responsable || ''}"`, 
+            `"${rowArray.modificadoPor || ''}"`, 
+            `"${rowArray.fechaModificacion || ''}"`
+        ];
+        csvContent += row.join(";") + "\n";
+    });
+
+    // Crear un enlace invisible y forzar descarga
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "inventario_taller.csv");
+    document.body.appendChild(link); // Requerido para Firefox
+    link.click();
+    document.body.removeChild(link);
+});
+
+// 11. LÓGICA DE LAS PESTAÑAS (NAVEGACIÓN SPA)
 const navBotones = document.querySelectorAll('.nav-btn');
 const tabContenidos = document.querySelectorAll('.tab-content');
 
